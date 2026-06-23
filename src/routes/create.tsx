@@ -30,7 +30,7 @@ function CreatePage() {
   const [teams, setTeams] = useState<string[]>(() => SAMPLE_TEAMS.slice(0, 8));
 
   // Keep teams in sync with size
-  useMemo(() => {
+  useEffect(() => {
     setTeams((prev) => {
       if (prev.length === size) return prev;
       if (prev.length < size) {
