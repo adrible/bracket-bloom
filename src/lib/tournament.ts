@@ -20,14 +20,49 @@ export type Match = {
   winner: "home" | "away" | null;
 };
 
+export type GroupMatch = {
+  id: string;
+  groupIdx: number;
+  home: string;
+  away: string;
+  score: { home: number; away: number } | null;
+};
+
+export type Group = {
+  idx: number;
+  name: string; // "Grupo A"
+  teams: string[];
+};
+
+export type GroupStage = {
+  groups: Group[];
+  matches: GroupMatch[];
+  teamsPerGroup: number;
+  qualifiersPerGroup: number;
+};
+
+export type Standing = {
+  team: string;
+  pts: number;
+  w: number;
+  d: number;
+  l: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  played: number;
+};
+
 export type Tournament = {
   id: string;
   name: string;
   size: 4 | 8 | 16 | 32 | 64;
-  teams: string[]; // length === size
+  teams: string[]; // length === size (knockout teams; for group stage this is full team list)
   matches: Match[];
   createdAt: number;
+  groupStage?: GroupStage;
 };
+
 
 export const SAMPLE_TEAMS = [
   "Liverpool",
