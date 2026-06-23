@@ -20,14 +20,49 @@ export type Match = {
   winner: "home" | "away" | null;
 };
 
+export type GroupMatch = {
+  id: string;
+  groupIdx: number;
+  home: string;
+  away: string;
+  score: { home: number; away: number } | null;
+};
+
+export type Group = {
+  idx: number;
+  name: string; // "Grupo A"
+  teams: string[];
+};
+
+export type GroupStage = {
+  groups: Group[];
+  matches: GroupMatch[];
+  teamsPerGroup: number;
+  qualifiersPerGroup: number;
+};
+
+export type Standing = {
+  team: string;
+  pts: number;
+  w: number;
+  d: number;
+  l: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  played: number;
+};
+
 export type Tournament = {
   id: string;
   name: string;
   size: 4 | 8 | 16 | 32 | 64;
-  teams: string[]; // length === size
+  teams: string[]; // length === size (knockout teams; for group stage this is full team list)
   matches: Match[];
   createdAt: number;
+  groupStage?: GroupStage;
 };
+
 
 export const SAMPLE_TEAMS = [
   "Liverpool",
@@ -279,7 +314,11 @@ export function simulateMatch(m: Match): Match {
 
 export function simulateAll(t: Tournament): Tournament {
   let curr: Tournament = { ...t, matches: t.matches.map((m) => ({ ...m })) };
-  const totalRounds = totalRoundsFor(t.size);
+  if (curr.groupStage) {
+    curr = simulateAllGroups(curr);
+    curr = seedKnockoutFromGroups(curr);
+  }
+  const totalRounds = totalRoundsFor(curr.size);
   for (let r = 0; r < totalRounds; r++) {
     curr = {
       ...curr,
@@ -294,6 +333,7 @@ export function simulateAll(t: Tournament): Tournament {
   }
   return curr;
 }
+
 
 // localStorage
 const KEY = "brocket:tournaments";
@@ -324,3 +364,221 @@ export function loadOne(id: string): Tournament | null {
 export function deleteOne(id: string) {
   saveAll(loadAll().filter((t) => t.id !== id));
 }
+
+// ===================== Group stage =====================
+
+// Generate round-robin pairings (indices) for n teams using circle method
+function roundRobinPairs(n: number): [number, number][] {
+  const teams: number[] = Array.from({ length: n }, (_, i) => i);
+  if (teams.length % 2 === 1) teams.push(-1); // bye
+  const m = teams.length;
+  const rounds = m - 1;
+  const half = m / 2;
+  const pairs: [number, number][] = [];
+  let arr = [...teams];
+  for (let r = 0; r < rounds; r++) {
+    for (let i = 0; i < half; i++) {
+      const a = arr[i];
+      const b = arr[m - 1 - i];
+      if (a !== -1 && b !== -1) {
+        // alternate home/away each round so it's not always the same side
+        if (r % 2 === 0) pairs.push([a, b]);
+        else pairs.push([b, a]);
+      }
+    }
+    arr = [arr[0], arr[m - 1], ...arr.slice(1, m - 1)];
+  }
+  return pairs;
+}
+
+export function createTournamentWithGroups(
+  name: string,
+  groupsCount: number,
+  teamsPerGroup: number,
+  teams: string[],
+  twoLeggedKnockout: boolean = false
+): Tournament {
+  const qualifiersPerGroup = 2;
+  const knockoutSize = (groupsCount * qualifiersPerGroup) as 4 | 8 | 16 | 32 | 64;
+
+  // Build groups by slicing
+  const groups: Group[] = [];
+  const groupMatches: GroupMatch[] = [];
+  for (let g = 0; g < groupsCount; g++) {
+    const gTeams = teams.slice(g * teamsPerGroup, (g + 1) * teamsPerGroup);
+    groups.push({
+      idx: g,
+      name: `Grupo ${String.fromCharCode(65 + g)}`,
+      teams: gTeams,
+    });
+    const pairs = roundRobinPairs(gTeams.length);
+    pairs.forEach(([a, b], i) => {
+      groupMatches.push({
+        id: `g${g}-${i}`,
+        groupIdx: g,
+        home: gTeams[a],
+        away: gTeams[b],
+        score: null,
+      });
+    });
+  }
+
+  // Build empty knockout (no teams seeded yet)
+  const totalRounds = totalRoundsFor(knockoutSize);
+  const matches: Match[] = [];
+  for (let r = 0; r < totalRounds; r++) {
+    const count = knockoutSize / Math.pow(2, r + 1);
+    for (let s = 0; s < count; s++) {
+      matches.push({
+        id: `${r}-${s}`,
+        round: r,
+        slot: s,
+        home: null,
+        away: null,
+        legs: [],
+        twoLegged: twoLeggedKnockout && r < totalRounds - 1,
+        penalties: null,
+        hadExtraTime: false,
+        winner: null,
+      });
+    }
+  }
+
+  return {
+    id: uid(),
+    name,
+    size: knockoutSize,
+    teams,
+    matches,
+    createdAt: Date.now(),
+    groupStage: {
+      groups,
+      matches: groupMatches,
+      teamsPerGroup,
+      qualifiersPerGroup,
+    },
+  };
+}
+
+export function computeStandings(group: Group, matches: GroupMatch[]): Standing[] {
+  const map = new Map<string, Standing>();
+  group.teams.forEach((team) =>
+    map.set(team, { team, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, played: 0 })
+  );
+  matches
+    .filter((m) => m.groupIdx === group.idx && m.score)
+    .forEach((m) => {
+      const h = map.get(m.home)!;
+      const a = map.get(m.away)!;
+      const s = m.score!;
+      h.gf += s.home;
+      h.ga += s.away;
+      a.gf += s.away;
+      a.ga += s.home;
+      h.played += 1;
+      a.played += 1;
+      if (s.home > s.away) {
+        h.w += 1;
+        h.pts += 3;
+        a.l += 1;
+      } else if (s.away > s.home) {
+        a.w += 1;
+        a.pts += 3;
+        h.l += 1;
+      } else {
+        h.d += 1;
+        a.d += 1;
+        h.pts += 1;
+        a.pts += 1;
+      }
+    });
+  const arr = Array.from(map.values());
+  arr.forEach((s) => (s.gd = s.gf - s.ga));
+  arr.sort(
+    (a, b) =>
+      b.pts - a.pts ||
+      b.gd - a.gd ||
+      b.gf - a.gf ||
+      a.team.localeCompare(b.team)
+  );
+  return arr;
+}
+
+export function allGroupMatchesPlayed(t: Tournament): boolean {
+  if (!t.groupStage) return true;
+  return t.groupStage.matches.every((m) => m.score !== null);
+}
+
+// Seed knockout round 0 from group standings if all group matches are played
+export function seedKnockoutFromGroups(t: Tournament): Tournament {
+  if (!t.groupStage) return t;
+  if (!allGroupMatchesPlayed(t)) return t;
+  const gs = t.groupStage;
+  const q = gs.qualifiersPerGroup;
+  // qualifiers[g][rank] = team name
+  const qualifiers: string[][] = gs.groups.map((g) =>
+    computeStandings(g, gs.matches)
+      .slice(0, q)
+      .map((s) => s.team)
+  );
+
+  // Pair groups (0,1),(2,3),...
+  // For each pair: 1st of A vs 2nd of B, then 1st of B vs 2nd of A (for q=2)
+  const seeds: { home: string; away: string }[] = [];
+  for (let i = 0; i < gs.groups.length; i += 2) {
+    const A = qualifiers[i];
+    const B = qualifiers[i + 1] ?? qualifiers[i];
+    // generic for any q: pair rank k of A with rank (q-1-k) of B and vice-versa
+    for (let k = 0; k < q; k++) {
+      const fromA = A[k];
+      const fromB = B[q - 1 - k];
+      // alternate which group is home to avoid same-group rematches landing oddly
+      if (k % 2 === 0) seeds.push({ home: fromA, away: fromB });
+      else seeds.push({ home: fromB, away: fromA });
+    }
+  }
+
+  const matches = t.matches.map((m) => ({ ...m, legs: m.legs.map((l) => ({ ...l })) }));
+  // Reset round 0 only if seeds differ
+  let changed = false;
+  matches
+    .filter((m) => m.round === 0)
+    .sort((a, b) => a.slot - b.slot)
+    .forEach((m, i) => {
+      const seed = seeds[i];
+      if (!seed) return;
+      if (m.home !== seed.home || m.away !== seed.away) {
+        m.home = seed.home;
+        m.away = seed.away;
+        m.legs = [];
+        m.penalties = null;
+        m.hadExtraTime = false;
+        m.winner = null;
+        changed = true;
+      }
+    });
+  if (!changed) return t;
+  return { ...t, matches };
+}
+
+function randScoreGroup() {
+  const r = Math.random();
+  if (r < 0.22) return 0;
+  if (r < 0.55) return 1;
+  if (r < 0.82) return 2;
+  if (r < 0.94) return 3;
+  return 4;
+}
+
+export function simulateGroupMatch(m: GroupMatch): GroupMatch {
+  return { ...m, score: { home: randScoreGroup(), away: randScoreGroup() } };
+}
+
+export function simulateAllGroups(t: Tournament): Tournament {
+  if (!t.groupStage) return t;
+  const matches = t.groupStage.matches.map((m) =>
+    m.score ? m : simulateGroupMatch(m)
+  );
+  return { ...t, groupStage: { ...t.groupStage, matches } };
+}
+
