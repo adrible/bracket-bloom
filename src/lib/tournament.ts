@@ -314,7 +314,11 @@ export function simulateMatch(m: Match): Match {
 
 export function simulateAll(t: Tournament): Tournament {
   let curr: Tournament = { ...t, matches: t.matches.map((m) => ({ ...m })) };
-  const totalRounds = totalRoundsFor(t.size);
+  if (curr.groupStage) {
+    curr = simulateAllGroups(curr);
+    curr = seedKnockoutFromGroups(curr);
+  }
+  const totalRounds = totalRoundsFor(curr.size);
   for (let r = 0; r < totalRounds; r++) {
     curr = {
       ...curr,
@@ -329,6 +333,7 @@ export function simulateAll(t: Tournament): Tournament {
   }
   return curr;
 }
+
 
 // localStorage
 const KEY = "brocket:tournaments";
