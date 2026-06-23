@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Shuffle, ArrowRight } from "lucide-react";
 import { BrandHeader } from "@/components/BrandHeader";
 import {
