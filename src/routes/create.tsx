@@ -126,6 +126,56 @@ function CreatePage() {
             />
           </Field>
 
+          <Field
+            label="Importar times reais"
+            right={
+              importedFrom ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                  via football-data.org
+                </span>
+              ) : null
+            }
+          >
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <select
+                value={competition}
+                onChange={(e) => setCompetition(e.target.value)}
+                className="flex-1 rounded-xl border border-border bg-[oklch(0.18_0.03_168)] px-3 py-2.5 text-sm font-medium text-foreground outline-none focus:border-primary"
+              >
+                {COMPETITIONS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/15 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/25 disabled:opacity-50"
+              >
+                {importing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {importing ? "Buscando…" : "Importar times"}
+              </button>
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Preenche os {totalTeams} primeiros times (sorteados) com escudos oficiais.
+              {importedFrom && (
+                <>
+                  {" "}Última importação: <span className="text-foreground">{importedFrom}</span>.
+                </>
+              )}
+            </p>
+            {importError && (
+              <p className="mt-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                {importError}
+              </p>
+            )}
+          </Field>
+
           <Field label="Formato do torneio">
             <div className="grid grid-cols-2 gap-2">
               <ModeBtn
