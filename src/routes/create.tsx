@@ -77,6 +77,36 @@ function CreatePage() {
     navigate({ to: "/bracket/$id", params: { id: t.id } });
   };
 
+  const handleImport = async () => {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const result = await fetchCompetitionTeams({ data: { code: competition } });
+      const imported = result.teams;
+      if (imported.length === 0) {
+        setImportError("Nenhum time retornado para esta competição.");
+        return;
+      }
+      const crestMap: Record<string, string> = {};
+      for (const t of imported) {
+        if (t.crest) crestMap[t.name] = t.crest;
+      }
+      setCrests(crestMap);
+      const names = imported.map((t) => t.name);
+      const shuffled = shuffle(names);
+      const take = shuffled.slice(0, totalTeams);
+      // pad if competition has fewer teams than needed
+      while (take.length < totalTeams) take.push(`Time ${take.length + 1}`);
+      setTeams(take);
+      const label = COMPETITIONS.find((c) => c.code === competition)?.label ?? competition;
+      setImportedFrom(label);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Falha ao importar times");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <BrandHeader subtitle="Novo torneio" />
