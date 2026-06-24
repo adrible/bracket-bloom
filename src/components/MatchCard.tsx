@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Match } from "@/lib/tournament";
 import { aggregateScore } from "@/lib/tournament";
 import { cn } from "@/lib/utils";
+import { TeamCrest } from "@/components/TeamCrest";
 
 type Props = {
   match: Match;
@@ -45,6 +46,7 @@ export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Prop
       >
         <TeamRow
           name={home}
+          rawName={match.home}
           score={homeScore}
           pen={match.penalties?.home}
           won={homeWon}
@@ -52,6 +54,7 @@ export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Prop
         />
         <TeamRow
           name={away}
+          rawName={match.away}
           score={awayScore}
           pen={match.penalties?.away}
           won={awayWon}
@@ -89,12 +92,14 @@ export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Prop
 
 function TeamRow({
   name,
+  rawName,
   score,
   pen,
   won,
   eliminated,
 }: {
   name: string;
+  rawName: string | null;
   score: number | undefined;
   pen: number | undefined;
   won: boolean;
@@ -102,15 +107,18 @@ function TeamRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span
-        className={cn(
-          "truncate pr-4",
-          won && "font-bold text-foreground",
-          eliminated && "font-normal text-muted-foreground/70",
-          !won && !eliminated && "text-foreground/90",
-        )}
-      >
-        {name}
+      <span className="flex min-w-0 flex-1 items-center gap-1.5 pr-4">
+        <TeamCrest name={rawName} size={18} dim={eliminated} />
+        <span
+          className={cn(
+            "truncate",
+            won && "font-bold text-foreground",
+            eliminated && "font-normal text-muted-foreground/70",
+            !won && !eliminated && "text-foreground/90",
+          )}
+        >
+          {name}
+        </span>
       </span>
       <span className="score-chip flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px]">
         <span>{score ?? "·"}</span>

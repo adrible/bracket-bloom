@@ -7,6 +7,7 @@ import {
   simulateGroupMatch,
 } from "@/lib/tournament";
 import { cn } from "@/lib/utils";
+import { TeamCrest } from "@/components/TeamCrest";
 
 type Props = {
   tournament: Tournament;
@@ -103,14 +104,17 @@ export function GroupStageView({ tournament, onChange }: Props) {
                           </td>
                           <td
                             className={cn(
-                              "truncate px-2 py-1.5 font-medium",
+                              "px-2 py-1.5 font-medium",
                               qualified ? "text-foreground" : "text-muted-foreground/80"
                             )}
                           >
-                            {s.team}
-                            {qualified && i === 0 && (
-                              <Trophy className="ml-1 inline h-3 w-3 text-[oklch(0.85_0.14_88)]" />
-                            )}
+                            <span className="flex min-w-0 items-center gap-1.5">
+                              <TeamCrest name={s.team} size={16} dim={!qualified} />
+                              <span className="truncate">{s.team}</span>
+                              {qualified && i === 0 && (
+                                <Trophy className="h-3 w-3 shrink-0 text-[oklch(0.85_0.14_88)]" />
+                              )}
+                            </span>
                           </td>
                           <td className="px-1 py-1.5 text-center text-muted-foreground">{s.played}</td>
                           <td className="px-1 py-1.5 text-center">{s.w}</td>
@@ -171,11 +175,12 @@ function GroupMatchRow({
     <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-[oklch(0.16_0.03_165/0.7)] px-2 py-1.5 text-[12px]">
       <span
         className={cn(
-          "flex-1 truncate text-right",
+          "flex min-w-0 flex-1 items-center justify-end gap-1.5",
           homeWon ? "font-bold text-foreground" : "text-muted-foreground/85"
         )}
       >
-        {match.home}
+        <span className="truncate text-right">{match.home}</span>
+        <TeamCrest name={match.home} size={16} dim={played && !homeWon} />
       </span>
       {editing ? (
         <div className="flex items-center gap-1">
@@ -209,11 +214,12 @@ function GroupMatchRow({
       )}
       <span
         className={cn(
-          "flex-1 truncate",
+          "flex min-w-0 flex-1 items-center gap-1.5",
           awayWon ? "font-bold text-foreground" : "text-muted-foreground/85"
         )}
       >
-        {match.away}
+        <TeamCrest name={match.away} size={16} dim={played && !awayWon} />
+        <span className="truncate">{match.away}</span>
       </span>
     </div>
   );
