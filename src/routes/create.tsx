@@ -35,6 +35,10 @@ function CreatePage() {
   const [koSize, setKoSize] = useState<(typeof KO_SIZES)[number]>(8);
   const [groupsCount, setGroupsCount] = useState<(typeof GROUP_COUNTS)[number]>(4);
   const [twoLegged, setTwoLegged] = useState(false);
+  const [competition, setCompetition] = useState<string>("CL");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importedFrom, setImportedFrom] = useState<string | null>(null);
 
   const totalTeams = mode === "ko" ? koSize : groupsCount * TEAMS_PER_GROUP;
 
