@@ -1,4 +1,14 @@
+import { useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { getCrest, subscribeCrests } from "@/lib/crests";
+
+function useCrestUrl(name: string | null | undefined): string | undefined {
+  return useSyncExternalStore(
+    subscribeCrests,
+    () => (name ? getCrest(name) : undefined),
+    () => undefined,
+  );
+}
 
 // Deterministic hash from team name
 function hash(str: string): number {
@@ -48,12 +58,33 @@ export type TeamCrestProps = {
 };
 
 export function TeamCrest({ name, size = 18, className, dim }: TeamCrestProps) {
+  const crestUrl = useCrestUrl(name);
+
   if (!name) {
     return (
       <span
         aria-hidden
         className={cn(
           "inline-block shrink-0 rounded-md border border-border/50 bg-[oklch(0.18_0.03_165)]",
+          className,
+        )}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
+  if (crestUrl) {
+    return (
+      <img
+        src={crestUrl}
+        alt=""
+        aria-hidden
+        width={size}
+        height={size}
+        loading="lazy"
+        className={cn(
+          "shrink-0 object-contain",
+          dim && "opacity-60 grayscale",
           className,
         )}
         style={{ width: size, height: size }}

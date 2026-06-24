@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shuffle, ArrowRight } from "lucide-react";
+import { Shuffle, ArrowRight, Download, Loader2 } from "lucide-react";
 import { BrandHeader } from "@/components/BrandHeader";
 import {
   SAMPLE_TEAMS,
@@ -10,6 +10,8 @@ import {
   shuffle,
   totalRoundsFor,
 } from "@/lib/tournament";
+import { COMPETITIONS, fetchCompetitionTeams } from "@/lib/football-data.functions";
+import { setCrests } from "@/lib/crests";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/create")({
@@ -33,6 +35,10 @@ function CreatePage() {
   const [koSize, setKoSize] = useState<(typeof KO_SIZES)[number]>(8);
   const [groupsCount, setGroupsCount] = useState<(typeof GROUP_COUNTS)[number]>(4);
   const [twoLegged, setTwoLegged] = useState(false);
+  const [competition, setCompetition] = useState<string>("CL");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importedFrom, setImportedFrom] = useState<string | null>(null);
 
   const totalTeams = mode === "ko" ? koSize : groupsCount * TEAMS_PER_GROUP;
 
@@ -71,6 +77,36 @@ function CreatePage() {
     navigate({ to: "/bracket/$id", params: { id: t.id } });
   };
 
+  const handleImport = async () => {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const result = await fetchCompetitionTeams({ data: { code: competition } });
+      const imported = result.teams;
+      if (imported.length === 0) {
+        setImportError("Nenhum time retornado para esta competição.");
+        return;
+      }
+      const crestMap: Record<string, string> = {};
+      for (const t of imported) {
+        if (t.crest) crestMap[t.name] = t.crest;
+      }
+      setCrests(crestMap);
+      const names = imported.map((t) => t.name);
+      const shuffled = shuffle(names);
+      const take = shuffled.slice(0, totalTeams);
+      // pad if competition has fewer teams than needed
+      while (take.length < totalTeams) take.push(`Time ${take.length + 1}`);
+      setTeams(take);
+      const label = COMPETITIONS.find((c) => c.code === competition)?.label ?? competition;
+      setImportedFrom(label);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Falha ao importar times");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <BrandHeader subtitle="Novo torneio" />
@@ -88,6 +124,56 @@ function CreatePage() {
               className="w-full rounded-xl border border-border bg-[oklch(0.18_0.03_168)] px-4 py-3 text-sm font-medium text-foreground outline-none focus:border-primary"
               placeholder="Ex.: Champions Brocket"
             />
+          </Field>
+
+          <Field
+            label="Importar times reais"
+            right={
+              importedFrom ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                  via football-data.org
+                </span>
+              ) : null
+            }
+          >
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <select
+                value={competition}
+                onChange={(e) => setCompetition(e.target.value)}
+                className="flex-1 rounded-xl border border-border bg-[oklch(0.18_0.03_168)] px-3 py-2.5 text-sm font-medium text-foreground outline-none focus:border-primary"
+              >
+                {COMPETITIONS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/15 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/25 disabled:opacity-50"
+              >
+                {importing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {importing ? "Buscando…" : "Importar times"}
+              </button>
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Preenche os {totalTeams} primeiros times (sorteados) com escudos oficiais.
+              {importedFrom && (
+                <>
+                  {" "}Última importação: <span className="text-foreground">{importedFrom}</span>.
+                </>
+              )}
+            </p>
+            {importError && (
+              <p className="mt-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                {importError}
+              </p>
+            )}
           </Field>
 
           <Field label="Formato do torneio">
