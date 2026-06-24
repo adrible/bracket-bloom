@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Shuffle, ArrowRight } from "lucide-react";
+import { Shuffle, ArrowRight, Download, Loader2 } from "lucide-react";
 import { BrandHeader } from "@/components/BrandHeader";
 import {
   SAMPLE_TEAMS,
@@ -10,6 +10,8 @@ import {
   shuffle,
   totalRoundsFor,
 } from "@/lib/tournament";
+import { COMPETITIONS, fetchCompetitionTeams } from "@/lib/football-data.functions";
+import { setCrests } from "@/lib/crests";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/create")({
