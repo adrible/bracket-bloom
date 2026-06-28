@@ -50,7 +50,7 @@ export const Bracket = forwardRef<HTMLDivElement, Props>(function Bracket({ tour
                 marginRight: r === totalRounds - 1 ? 0 : ROUND_GAP,
               }}
             >
-              <div className="inline-block rounded-full border border-border bg-[oklch(0.22_0.04_168/0.6)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 {roundName(r, totalRounds)}
               </div>
             </div>
@@ -87,8 +87,8 @@ export const Bracket = forwardRef<HTMLDivElement, Props>(function Bracket({ tour
                 <path
                   key={m.id}
                   d={path}
-                  stroke={active ? "oklch(0.72 0.16 158 / 0.85)" : "oklch(0.5 0.06 168 / 0.55)"}
-                  strokeWidth={active ? 1.6 : 1.2}
+                  stroke={active ? "oklch(0.66 0.10 158 / 0.85)" : "oklch(0.40 0.02 170 / 0.7)"}
+                  strokeWidth={1}
                   fill="none"
                 />
               );

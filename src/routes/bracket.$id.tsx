@@ -151,32 +151,37 @@ function BracketPage() {
   const koReady = !hasGroups || allGroupMatchesPlayed(t);
 
   return (
-    <div className="min-h-screen pb-28">
+    <div className="min-h-screen pb-24">
       <BrandHeader subtitle="Chave" />
-      <div className="mx-auto max-w-6xl px-4 pt-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="mx-auto max-w-6xl px-5 pt-8">
+        <Link
+          to="/"
+          className="mb-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3 w-3" /> Voltar
+        </Link>
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
           <div>
-            <Link
-              to="/"
-              className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-3 w-3" /> Voltar
-            </Link>
-            <h1 className="font-display text-2xl font-bold md:text-3xl">{t.name}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <h1 className="font-display text-3xl font-medium text-foreground md:text-[34px]">
+              {t.name}
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
               {hasGroups && (
                 <>
                   <span>{t.groupStage!.groups.length} grupos</span>
-                  <span className="opacity-50">·</span>
+                  <span className="text-border">·</span>
                 </>
               )}
               <span>{t.teams.length} times</span>
-              <span className="opacity-50">·</span>
-              <span>{t.matches[0].twoLegged ? "Mata-mata ida/volta" : "Mata-mata único"}</span>
+              <span className="text-border">·</span>
+              <span>{t.matches[0].twoLegged ? "Ida e volta" : "Jogo único"}</span>
               {champ && (
                 <>
-                  <span className="opacity-50">·</span>
-                  <span className="font-semibold text-[oklch(0.85_0.14_88)]">🏆 {champ}</span>
+                  <span className="text-border">·</span>
+                  <span className="text-foreground">
+                    <span className="text-muted-foreground">Campeão · </span>
+                    <span className="font-medium">{champ}</span>
+                  </span>
                 </>
               )}
             </div>
@@ -184,7 +189,7 @@ function BracketPage() {
         </div>
 
         {hasGroups && (
-          <div className="mt-5 inline-flex rounded-xl border border-border bg-[oklch(0.18_0.03_168)] p-1">
+          <div className="mt-5 inline-flex gap-6 border-b border-transparent">
             <TabBtn active={tab === "groups"} onClick={() => setTab("groups")}>
               Fase de grupos
             </TabBtn>
@@ -202,7 +207,7 @@ function BracketPage() {
 
       {/* Body */}
       {hasGroups && tab === "groups" ? (
-        <div className="mt-5">
+        <div className="mt-6">
           <GroupStageView tournament={t} onChange={update} />
         </div>
       ) : (
@@ -212,26 +217,29 @@ function BracketPage() {
       )}
 
       {/* Hotbar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border/60 bg-[oklch(0.15_0.025_165/0.85)] backdrop-blur-lg">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5">
-          <HotbarBtn onClick={handleSimulateNext} icon={<Zap className="h-4 w-4" />}>
-            Próx.
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center gap-1.5 px-4 py-2.5">
+          <HotbarBtn onClick={handleSimulateNext} icon={<Zap className="h-3.5 w-3.5" />}>
+            Próximo
           </HotbarBtn>
           {hasGroups && tab === "groups" && (
-            <HotbarBtn onClick={handleSimulateAllGroups} icon={<Zap className="h-4 w-4" />}>
+            <HotbarBtn
+              onClick={handleSimulateAllGroups}
+              icon={<Zap className="h-3.5 w-3.5" />}
+            >
               <span className="hidden sm:inline">Simular grupos</span>
               <span className="sm:hidden">Grupos</span>
             </HotbarBtn>
           )}
-          <HotbarBtn primary onClick={handleSimulateAll} icon={<Zap className="h-4 w-4" />}>
+          <HotbarBtn primary onClick={handleSimulateAll} icon={<Zap className="h-3.5 w-3.5" />}>
             Simular tudo
           </HotbarBtn>
-          <HotbarBtn onClick={handleReset} icon={<RotateCcw className="h-4 w-4" />}>
+          <HotbarBtn onClick={handleReset} icon={<RotateCcw className="h-3.5 w-3.5" />}>
             <span className="hidden sm:inline">Resetar</span>
           </HotbarBtn>
           <div className="flex-1" />
-          <HotbarBtn primary onClick={handleExport} icon={<Download className="h-4 w-4" />}>
-            PNG
+          <HotbarBtn onClick={handleExport} icon={<Download className="h-3.5 w-3.5" />}>
+            Exportar PNG
           </HotbarBtn>
         </div>
       </div>
@@ -270,11 +278,11 @@ function TabBtn({
       disabled={disabled}
       title={hint}
       className={cn(
-        "rounded-lg px-4 py-1.5 text-xs font-semibold transition-all",
+        "-mb-px border-b-2 pb-2.5 text-[13px] font-medium transition-colors",
         active
-          ? "bg-[var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]"
-          : "text-muted-foreground hover:text-foreground",
-        disabled && "cursor-not-allowed opacity-50 hover:text-muted-foreground"
+          ? "border-primary text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground",
+        disabled && "cursor-not-allowed opacity-40 hover:text-muted-foreground"
       )}
     >
       {children}
@@ -296,11 +304,12 @@ function HotbarBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+      className={cn(
+        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
         primary
-          ? "bg-[var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]"
-          : "border border-border bg-[oklch(0.22_0.04_168/0.7)] text-foreground hover:bg-[oklch(0.28_0.04_168/0.8)]"
-      }`}
+          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          : "border border-border bg-surface text-foreground hover:bg-accent"
+      )}
     >
       {icon}
       {children}

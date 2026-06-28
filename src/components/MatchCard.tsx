@@ -16,7 +16,7 @@ function teamLabel(name: string | null) {
   return name ?? "—";
 }
 
-export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Props) {
+export function MatchCard({ match, isFinal, expanded, onToggle }: Props) {
   const agg = aggregateScore(match);
   const winner = match.winner;
   const homeWon = winner === "home";
@@ -34,14 +34,14 @@ export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Prop
   return (
     <div
       className={cn(
-        "group relative w-full select-none rounded-xl text-[13px] transition-all",
-        "glass hover:translate-y-[-1px]",
-        isFinal && "gold-border bg-[oklch(0.22_0.04_165/0.85)]",
+        "group relative w-full select-none rounded-md border border-border bg-surface text-[12.5px] transition-colors",
+        "hover:border-border/100 hover:bg-surface-2",
+        isFinal && "border-[oklch(0.78_0.10_85/0.45)] bg-[oklch(0.78_0.10_85/0.04)]",
       )}
     >
       <button
         onClick={onToggle}
-        className="flex w-full flex-col gap-[2px] rounded-xl px-2.5 py-2 text-left"
+        className="flex w-full flex-col gap-px rounded-md px-2.5 py-2 text-left"
         aria-expanded={expanded}
       >
         <TeamRow
@@ -60,28 +60,25 @@ export function MatchCard({ match, isFinal, expanded, onToggle, champion }: Prop
           won={awayWon}
           eliminated={winner !== null && !awayWon}
         />
-        <div className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground/70">
-          {expanded ? "−" : "+"}
-        </div>
         {showAgg && (
-          <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground/70">
+          <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
             agregado
           </div>
         )}
       </button>
 
       {expanded && (
-        <div className="border-t border-border/60 px-2.5 py-2 text-[11px] text-muted-foreground">
+        <div className="border-t border-border px-2.5 py-2 text-[11px] text-muted-foreground">
           <MatchDetails match={match} />
         </div>
       )}
 
       {isFinal && championName && (
-        <div className="border-t border-[oklch(0.85_0.14_88/0.3)] px-2.5 py-1.5 text-center">
-          <span className="text-[9px] uppercase tracking-[0.2em] text-[oklch(0.85_0.14_88)]">
+        <div className="border-t border-[oklch(0.78_0.10_85/0.3)] px-2.5 py-1.5 text-center">
+          <span className="text-[9px] uppercase tracking-[0.2em] text-[oklch(0.78_0.10_85)]">
             Campeão
           </span>
-          <div className="font-display text-[14px] font-bold text-[oklch(0.92_0.14_88)]">
+          <div className="font-display text-[14px] font-medium text-foreground">
             {championName}
           </div>
         </div>
@@ -107,23 +104,25 @@ function TeamRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="flex min-w-0 flex-1 items-center gap-1.5 pr-4">
-        <TeamCrest name={rawName} size={18} dim={eliminated} />
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <TeamCrest name={rawName} size={16} dim={eliminated} />
         <span
           className={cn(
             "truncate",
-            won && "font-bold text-foreground",
-            eliminated && "font-normal text-muted-foreground/70",
+            won && "font-semibold text-foreground",
+            eliminated && "text-muted-foreground",
             !won && !eliminated && "text-foreground/90",
           )}
         >
           {name}
         </span>
       </span>
-      <span className="score-chip flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px]">
-        <span>{score ?? "·"}</span>
+      <span className="flex shrink-0 items-baseline gap-1 font-mono text-[12px] tabular-nums">
+        <span className={cn(won ? "text-foreground" : "text-muted-foreground")}>
+          {score ?? "·"}
+        </span>
         {pen !== undefined && (
-          <span className="text-[10px] font-semibold text-muted-foreground">({pen})</span>
+          <span className="text-[10px] text-muted-foreground">({pen})</span>
         )}
       </span>
     </div>
@@ -139,13 +138,11 @@ function MatchDetails({ match }: { match: Match }) {
       <div className="space-y-1">
         {l && (
           <DetailRow
-            label="JOGO"
-            content={`${homeShort} ${l.homeScore}-${l.awayScore} ${awayShort}`}
+            label="Jogo"
+            content={`${homeShort} ${l.homeScore}–${l.awayScore} ${awayShort}`}
           />
         )}
-        {match.penalties && (
-          <DetailRow label="DECISÃO" content="Pênaltis" />
-        )}
+        {match.penalties && <DetailRow label="Decisão" content="Pênaltis" />}
         {!l && <div className="opacity-60">Aguardando resultado</div>}
       </div>
     );
@@ -156,20 +153,20 @@ function MatchDetails({ match }: { match: Match }) {
     <div className="space-y-1">
       {l1 && (
         <DetailRow
-          label="IDA"
-          content={`${homeShort} ${l1.homeScore}-${l1.awayScore} ${awayShort}`}
+          label="Ida"
+          content={`${homeShort} ${l1.homeScore}–${l1.awayScore} ${awayShort}`}
         />
       )}
       {l2 && (
         <DetailRow
-          label="VOLTA"
-          content={`${awayShort} ${l2.homeScore}-${l2.awayScore} ${homeShort}`}
+          label="Volta"
+          content={`${awayShort} ${l2.homeScore}–${l2.awayScore} ${homeShort}`}
         />
       )}
       {match.penalties && (
         <DetailRow
-          label="DECISÃO"
-          content={match.hadExtraTime ? "A.P. + Pênaltis" : "Pênaltis"}
+          label="Decisão"
+          content={match.hadExtraTime ? "A.P. + pênaltis" : "Pênaltis"}
         />
       )}
     </div>
@@ -179,10 +176,10 @@ function MatchDetails({ match }: { match: Match }) {
 function DetailRow({ label, content }: { label: string; content: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="rounded-sm bg-[oklch(0.12_0.02_165)] px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-primary">
+      <span className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </span>
-      <span className="font-medium text-foreground/90">{content}</span>
+      <span className="font-mono text-[11px] text-foreground/90">{content}</span>
     </div>
   );
 }

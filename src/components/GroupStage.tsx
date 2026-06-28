@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, Trophy, Check } from "lucide-react";
+import { Zap, Check } from "lucide-react";
 import {
   computeStandings,
   type Tournament,
@@ -31,110 +31,106 @@ export function GroupStageView({ tournament, onChange }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="mx-auto max-w-6xl px-5">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {gs.groups.map((g) => {
           const standings = computeStandings(g, gs.matches);
           const groupMatches = gs.matches.filter((m) => m.groupIdx === g.idx);
           const allPlayed = groupMatches.every((m) => m.score);
           return (
-            <div
-              key={g.idx}
-              className="glass rounded-2xl border border-border/60 p-4"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/15 font-display text-sm font-bold text-primary">
-                    {String.fromCharCode(65 + g.idx)}
+            <div key={g.idx}>
+              <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Grupo
                   </span>
-                  <h3 className="font-display text-base font-bold">{g.name}</h3>
+                  <h3 className="font-display text-[17px] font-medium text-foreground">
+                    {g.name}
+                  </h3>
                   {allPlayed && (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] uppercase tracking-wider text-muted-foreground">
                       <Check className="h-2.5 w-2.5" /> Encerrado
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => simulateGroup(g.idx)}
-                  className="flex items-center gap-1 rounded-lg border border-border bg-[oklch(0.22_0.04_168/0.6)] px-2 py-1 text-[10px] font-semibold text-foreground hover:bg-[oklch(0.28_0.04_168/0.7)]"
+                  className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
                   <Zap className="h-3 w-3" /> Simular
                 </button>
               </div>
 
-              {/* Standings table */}
-              <div className="overflow-hidden rounded-xl border border-border/60">
-                <table className="w-full text-[12px]">
-                  <thead className="bg-[oklch(0.18_0.03_168)] text-[9px] uppercase tracking-wider text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1.5 text-left font-semibold">#</th>
-                      <th className="px-2 py-1.5 text-left font-semibold">Time</th>
-                      <th className="px-1 py-1.5 text-center font-semibold">P</th>
-                      <th className="px-1 py-1.5 text-center font-semibold">V</th>
-                      <th className="px-1 py-1.5 text-center font-semibold">E</th>
-                      <th className="px-1 py-1.5 text-center font-semibold">D</th>
-                      <th className="px-1 py-1.5 text-center font-semibold">SG</th>
-                      <th className="px-2 py-1.5 text-center font-bold text-primary">PTS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {standings.map((s, i) => {
-                      const qualified = i < gs.qualifiersPerGroup;
-                      return (
-                        <tr
-                          key={s.team}
-                          className={cn(
-                            "border-t border-border/40",
-                            qualified
-                              ? "bg-[oklch(0.45_0.13_158/0.08)]"
-                              : "bg-transparent"
-                          )}
-                        >
-                          <td className="px-2 py-1.5">
-                            <span
-                              className={cn(
-                                "grid h-5 w-5 place-items-center rounded-md text-[10px] font-bold",
-                                qualified
-                                  ? "bg-primary/25 text-primary"
-                                  : "bg-[oklch(0.16_0.03_165)] text-muted-foreground"
-                              )}
-                            >
-                              {i + 1}
-                            </span>
-                          </td>
-                          <td
+              <table className="w-full text-[12.5px]">
+                <thead className="text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <tr>
+                    <th className="py-1.5 pr-2 text-left font-normal">#</th>
+                    <th className="py-1.5 pr-2 text-left font-normal">Time</th>
+                    <th className="py-1.5 text-center font-normal">P</th>
+                    <th className="py-1.5 text-center font-normal">V</th>
+                    <th className="py-1.5 text-center font-normal">E</th>
+                    <th className="py-1.5 text-center font-normal">D</th>
+                    <th className="py-1.5 text-center font-normal">SG</th>
+                    <th className="py-1.5 pl-2 text-right font-normal text-foreground">
+                      PTS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {standings.map((s, i) => {
+                    const qualified = i < gs.qualifiersPerGroup;
+                    return (
+                      <tr key={s.team} className="border-t border-border">
+                        <td className="py-2 pr-2">
+                          <span
                             className={cn(
-                              "px-2 py-1.5 font-medium",
-                              qualified ? "text-foreground" : "text-muted-foreground/80"
+                              "font-mono text-[11px]",
+                              qualified ? "text-primary" : "text-muted-foreground"
                             )}
                           >
-                            <span className="flex min-w-0 items-center gap-1.5">
-                              <TeamCrest name={s.team} size={16} dim={!qualified} />
-                              <span className="truncate">{s.team}</span>
-                              {qualified && i === 0 && (
-                                <Trophy className="h-3 w-3 shrink-0 text-[oklch(0.85_0.14_88)]" />
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                        </td>
+                        <td
+                          className={cn(
+                            "py-2 pr-2",
+                            qualified ? "text-foreground" : "text-muted-foreground"
+                          )}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "h-3 w-0.5 rounded-sm",
+                                qualified ? "bg-primary" : "bg-transparent"
                               )}
-                            </span>
-                          </td>
-                          <td className="px-1 py-1.5 text-center text-muted-foreground">{s.played}</td>
-                          <td className="px-1 py-1.5 text-center">{s.w}</td>
-                          <td className="px-1 py-1.5 text-center">{s.d}</td>
-                          <td className="px-1 py-1.5 text-center">{s.l}</td>
-                          <td className="px-1 py-1.5 text-center text-muted-foreground">
-                            {s.gd > 0 ? `+${s.gd}` : s.gd}
-                          </td>
-                          <td className="px-2 py-1.5 text-center font-bold text-primary">
-                            {s.pts}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                            />
+                            <TeamCrest name={s.team} size={16} dim={!qualified} />
+                            <span className="truncate">{s.team}</span>
+                          </span>
+                        </td>
+                        <td className="py-2 text-center font-mono tabular-nums text-muted-foreground">
+                          {s.played}
+                        </td>
+                        <td className="py-2 text-center font-mono tabular-nums">{s.w}</td>
+                        <td className="py-2 text-center font-mono tabular-nums">{s.d}</td>
+                        <td className="py-2 text-center font-mono tabular-nums">{s.l}</td>
+                        <td className="py-2 text-center font-mono tabular-nums text-muted-foreground">
+                          {s.gd > 0 ? `+${s.gd}` : s.gd}
+                        </td>
+                        <td className="py-2 pl-2 text-right font-mono font-semibold tabular-nums text-foreground">
+                          {s.pts}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
 
-              {/* Matches */}
-              <div className="mt-3 space-y-1.5">
+              <div className="mt-5 space-y-1">
+                <div className="mb-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Confrontos
+                </div>
                 {groupMatches.map((m) => (
                   <GroupMatchRow key={m.id} match={m} onChange={(s) => updateMatch(m.id, s)} />
                 ))}
@@ -172,15 +168,15 @@ function GroupMatchRow({
   const awayWon = played && match.score!.away > match.score!.home;
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-[oklch(0.16_0.03_165/0.7)] px-2 py-1.5 text-[12px]">
+    <div className="flex items-center gap-3 py-1.5 text-[12.5px]">
       <span
         className={cn(
-          "flex min-w-0 flex-1 items-center justify-end gap-1.5",
-          homeWon ? "font-bold text-foreground" : "text-muted-foreground/85"
+          "flex min-w-0 flex-1 items-center justify-end gap-2",
+          homeWon ? "text-foreground" : "text-muted-foreground"
         )}
       >
         <span className="truncate text-right">{match.home}</span>
-        <TeamCrest name={match.home} size={16} dim={played && !homeWon} />
+        <TeamCrest name={match.home} size={15} dim={played && !homeWon} />
       </span>
       {editing ? (
         <div className="flex items-center gap-1">
@@ -190,23 +186,23 @@ function GroupMatchRow({
             onBlur={commit}
             onKeyDown={(e) => e.key === "Enter" && commit()}
             autoFocus
-            className="h-6 w-7 rounded-md border border-primary/40 bg-[oklch(0.12_0.02_165)] text-center text-[12px] font-bold text-foreground outline-none"
+            className="h-6 w-7 rounded border border-ring bg-background text-center font-mono text-[12px] text-foreground outline-none"
           />
-          <span className="text-muted-foreground">×</span>
+          <span className="text-muted-foreground">–</span>
           <input
             value={a}
             onChange={(e) => setA(e.target.value.replace(/[^\d]/g, "").slice(0, 2))}
             onBlur={commit}
             onKeyDown={(e) => e.key === "Enter" && commit()}
-            className="h-6 w-7 rounded-md border border-primary/40 bg-[oklch(0.12_0.02_165)] text-center text-[12px] font-bold text-foreground outline-none"
+            className="h-6 w-7 rounded border border-ring bg-background text-center font-mono text-[12px] text-foreground outline-none"
           />
         </div>
       ) : (
         <button
           onClick={() => setEditing(true)}
           className={cn(
-            "score-chip min-w-[52px] rounded-md px-2 py-0.5 text-center text-[12px] font-bold",
-            !played && "text-muted-foreground/60"
+            "min-w-[56px] rounded border border-border bg-surface px-2 py-0.5 text-center font-mono text-[12px] tabular-nums transition-colors hover:bg-accent",
+            played ? "text-foreground" : "text-muted-foreground"
           )}
         >
           {played ? `${match.score!.home} – ${match.score!.away}` : "—"}
@@ -214,11 +210,11 @@ function GroupMatchRow({
       )}
       <span
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-1.5",
-          awayWon ? "font-bold text-foreground" : "text-muted-foreground/85"
+          "flex min-w-0 flex-1 items-center gap-2",
+          awayWon ? "text-foreground" : "text-muted-foreground"
         )}
       >
-        <TeamCrest name={match.away} size={16} dim={played && !awayWon} />
+        <TeamCrest name={match.away} size={15} dim={played && !awayWon} />
         <span className="truncate">{match.away}</span>
       </span>
     </div>
